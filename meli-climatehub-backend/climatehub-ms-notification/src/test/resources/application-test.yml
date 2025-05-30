@@ -1,0 +1,15 @@
+spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1  # Usar um banco diferente para testes
+      timeout: 10000
+      connect-timeout: 10000
+
+logging:
+  level:
+    com.mercadolibre.itarc.climatehub_ms_notification: DEBUG
+    org.springframework.web.reactive.function.client.ExchangeFunctions: DEBUG 

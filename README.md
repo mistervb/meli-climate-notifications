@@ -81,3 +81,18 @@ sequenceDiagram
 ### 5. Escalabilidade
 
 - Workers dinâmicos (docker-compose scale worker=5)
+
+
+# Subir o backend (microserviços)
+
+Na raiz do projeto rode o seguinte comando:
+
+caso tenha o docker V2:
+```bash
+docker compose -f ./docker/docker-compose.yaml up --build
+```
+
+caso tenha o docker com a versão anterior da V2:
+```bash
+docker-compose -f ./docker/docker-compose.yaml up --build
+```

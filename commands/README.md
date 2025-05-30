@@ -1,0 +1,1 @@
+# Comandos apenas para me auxiliar no desenvolvimento..
