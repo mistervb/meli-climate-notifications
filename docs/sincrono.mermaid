@@ -1,0 +1,5 @@
+sequenceDiagram
+    Frontend->>+Gateway: POST /notifications
+    Gateway->>+Notification: Proxy request
+    Notification-->>-Gateway: 202 Accepted
+    Gateway-->>-Frontend: Response
