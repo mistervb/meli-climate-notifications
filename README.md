@@ -30,43 +30,44 @@ O desafio proposto pelo Mercado Livre consistia em desenvolver uma solução de 
 
 ```mermaid
 graph TB
-    Client((Client))
-    Gateway[API Gateway]
-    User[User Service]
-    Notification[Notification Service]
-    Worker[Notification Worker]
-    Discovery[Service Discovery]
-    MQ[(RabbitMQ)]
-    DB[(H2 Database)]
-    Redis[(Redis)]
+    %% Nós
+    Client((Cliente))
+    Gateway[Gateway]
+    User[User]
+    Notification[Notification]
+    Worker[Worker]
+    Discovery[Discovery]
+    WeatherQ[(Weather Queue)]
+    NotifyQ[(Notify Queue)]
+    Redis[(Cache)]
+    DB[(Database)]
     CPTEC[CPTEC API]
 
-    Client -->|REST/HTTP| Gateway
-    Gateway -->|Auth/JWT| User
-    Gateway -->|Notificações| Notification
-    Gateway -->|Service Registry| Discovery
+    %% Conexões principais
+    Client --> Gateway
+    Gateway --> User & Notification
     
-    User -->|Persistência| DB
-    User -->|Registry/Discovery| Discovery
+    %% Fluxo de processamento climático
+    Worker --> CPTEC
+    Worker --> WeatherQ
+    Notification --> WeatherQ
     
-    Notification -->|Persistência| DB
-    Notification -->|Eventos| MQ
-    Notification -->|Registry/Discovery| Discovery
-    Notification -->|Cache| Redis
+    %% Fluxo de notificações
+    Worker --> NotifyQ
+    Notification --> NotifyQ
     Notification -.->|SSE| Client
-    
-    Worker -->|Consume| MQ
-    Worker -->|Cache| Redis
-    Worker -->|Integração| CPTEC
-    Worker -->|Registry/Discovery| Discovery
-    Worker -.->|SSE| Client
 
-    style Client fill:#f9f,stroke:#333,stroke-width:2px
-    style Gateway fill:#bbf,stroke:#333,stroke-width:2px
-    style Discovery fill:#bfb,stroke:#333,stroke-width:2px
-    style MQ fill:#fbf,stroke:#333,stroke-width:2px
-    style Redis fill:#fbb,stroke:#333,stroke-width:2px
-    style DB fill:#bff,stroke:#333,stroke-width:2px
+    %% Integrações essenciais
+    User & Notification --> DB
+    Notification & Worker --> Redis
+
+    %% Estilo minimalista
+    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
+    classDef external fill:#fff,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5
+    classDef storage fill:#fff,stroke:#333,stroke-width:1px
+    
+    class Client,CPTEC external
+    class WeatherQ,NotifyQ,Redis,DB storage
 ```
 
 ## 🔍 Componentes Principais
