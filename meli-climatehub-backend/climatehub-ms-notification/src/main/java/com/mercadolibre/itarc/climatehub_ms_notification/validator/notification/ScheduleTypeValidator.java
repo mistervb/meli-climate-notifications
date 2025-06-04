@@ -13,7 +13,7 @@ public class ScheduleTypeValidator extends BaseValidationHandler {
             case ONCE -> validateOnceSchedule(request);
             case DAILY -> validateDailySchedule(request);
             case WEEKLY -> validateWeeklySchedule(request);
-            case CUSTOM -> validateCustomSchedule(request);
+            case CUSTOM -> throw new IllegalArgumentException("CUSTOM is not supported in this version.");
         }
         validateNext(request);
     }

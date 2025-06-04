@@ -82,7 +82,7 @@ POST /notification/schedule
 {
   "cityName": "string",
   "uf": "string",
-  "scheduleType": "ONCE | DAILY | WEEKLY | CUSTOM",
+  "scheduleType": "ONCE | DAILY | WEEKLY ",
   "time": "HH:mm",
   "dayOfWeek": 1,
   "executeAt": "2024-03-20T10:00:00",
@@ -150,15 +150,9 @@ Server-Sent Events (SSE) endpoint que envia notificações em tempo real.
 
 3. **WEEKLY**
    - Executa em um dia específico da semana
-   - Requer: time, dayOfWeek (1-7, onde 1 = Domingo)
+   - Requer: time, dayOfWeek (1-7, onde 1 = Segunda/Monday)
    - Opcional: endDate
    - Não requer: executeAt
-
-4. **CUSTOM**
-   - Executa em dias específicos (ex: fins de semana)
-   - Requer: time
-   - Opcional: endDate
-   - Configuração especial via backend
 
 ### Validações
 
