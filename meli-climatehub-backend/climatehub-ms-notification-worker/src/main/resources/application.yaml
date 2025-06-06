@@ -1,0 +1,115 @@
+spring:
+  application:
+    name: climatehub-ms-notification-worker
+  
+  main:
+    allow-bean-definition-overriding: true
+
+  # Database
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:notificationdb}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVERCLASSNAME:org.h2.Driver}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+  
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  
+  cache:
+    type: redis
+
+  # RabbitMQ
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  # Quartz
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org.quartz.scheduler.instanceName: climatehub-notification-scheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+      org.quartz.jobStore.useProperties: true
+      org.quartz.jobStore.misfireThreshold: 60000
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.clusterCheckinInterval: 20000
+      org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
+      org.quartz.threadPool.threadCount: 10
+      org.quartz.threadPool.threadPriority: 5
+
+server:
+  port: ${APP_PORT:8083}
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    info:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.mercadolibre.itarc.climatehub_ms_notification_worker: INFO
+    com.mercadolibre.itarc.climatehub_ms_notification_worker.job.NotificationProcessorJob: INFO
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET:senhaultrasecreta}
+  expiration: ${JWT_EXPIRATION:3600000}
+  schedule:
+    secret: ${SCHEDULE_SECRET:senhaultrasecreta2}
+
+# Resilience4j
+resilience4j:
+  circuitbreaker:
+    instances:
+      notification-service:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+  timelimiter:
+    instances:
+      notification-service:
+        timeoutDuration: 2s
+
+# Eureka Client
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://service-discovery:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

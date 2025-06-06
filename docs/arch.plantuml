@@ -1,0 +1,9 @@
+@startuml
+[API Gateway] --> [Notification Service]
+[Notification Service] --> [SQLServer]
+[Notification Service] --> [RabbitMQ]
+[RabbitMQ] --> [Worker 1]
+[RabbitMQ] --> [Worker N]
+[Notification Service] --> [Redis]
+[Notification Service] --> [CPTEC API]
+@enduml

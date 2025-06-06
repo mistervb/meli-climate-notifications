@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: climatehub-api-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Rota de autenticação e usuários (liberada)
+        - id: climatehub-ms-user
+          uri: lb://climatehub-ms-user
+          predicates:
+            - Path=/user/**
+          filters:
+            - name: AuthenticationFilter
+          metadata:
+            connect-timeout: 2000
+            response-timeout: 5000
+
+        # Rota protegida: microserviço de notificação
+        - id: climatehub-ms-notification
+          uri: lb://climatehub-ms-notification
+          predicates:
+            - Path=/notification/**
+          filters:
+            - name: AuthenticationFilter
+          metadata:
+            connect-timeout: 2000
+            response-timeout: 5000
+           
+server:
+  port: ${APP_PORT:8080}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+
+jwt:
+  secret: senhaultrasecreta
+  expiration: 3600000 # 1 hora
+
+logging:
+  level:
+    root: INFO
+    com.mercadolibre.itarc.climatehub_api_gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    org.springframework.cloud.netflix.eureka: INFO
