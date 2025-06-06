@@ -20,6 +20,4 @@ public class NotificationValidator {
         NotificationValidationHandler validationChain = createValidationChain();
         validationChain.validate(request);
     }
-
-
 }

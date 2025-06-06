@@ -57,6 +57,7 @@ public class ScheduleEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ScheduleStatus status = ScheduleStatus.ACTIVE;
 
     @Column(length = 1000)

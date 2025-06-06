@@ -19,7 +19,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.PersistJobDataAfterExecution;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -33,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 @PersistJobDataAfterExecution
 public class NotificationProcessorJob implements Job {
 
-    private static final String LAST_EXECUTION_TIME_KEY = "notification:last_execution";
     private static final String LOCK_KEY_PREFIX = "notification:lock:";
     private static final String PROCESSED_KEY_PREFIX = "notification:processed:";
     private static final long LOCK_DURATION = 5; // minutos
@@ -56,9 +54,6 @@ public class NotificationProcessorJob implements Job {
 
     @Autowired
     private NotificationFeignClient notificationClient;
-
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
 
     @Autowired
     private NotificationSSEProducer notificationSSEProducer;
@@ -321,6 +316,8 @@ public class NotificationProcessorJob implements Job {
                         nextExecution,
                         nextExecution.atZone(ZoneOffset.UTC).withZoneSameInstant(SAO_PAULO_ZONE));
                 }
+                break;
+            default:
                 break;
         }
 

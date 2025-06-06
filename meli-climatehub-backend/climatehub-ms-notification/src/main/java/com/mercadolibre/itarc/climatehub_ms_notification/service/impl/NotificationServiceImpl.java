@@ -12,13 +12,15 @@ import com.mercadolibre.itarc.climatehub_ms_notification.repository.Notification
 import com.mercadolibre.itarc.climatehub_ms_notification.service.NotificationService;
 import com.mercadolibre.itarc.climatehub_ms_notification.service.SseService;
 import com.mercadolibre.itarc.climatehub_ms_notification.service.TokenService;
+import com.mercadolibre.itarc.climatehub_ms_notification.util.TimeUtils;
+import com.mercadolibre.itarc.climatehub_ms_notification.util.TimeUtils.TimeAdjusted;
 import com.mercadolibre.itarc.climatehub_ms_notification.validator.notification.NotificationValidator;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -49,12 +51,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationResponse scheduleNotification(NotificationRequest request) {
         NotificationValidator.validateNotificationRequest(request);
-        Integer cityId = 0;
-
         LocalDateTime nextExecution = calculateNextExecution(request);
 
         NotificationEntity notification = notificationMapper.toEntity(request);
-        notification.setCityId(cityId);
+        // id da cidade irá ser buscado pelo worker.
+        // o worker irá atualizar esse dado da notificação.
+        notification.setCityId(0); 
+
         String userId = tokenService.getCurrentUserId();
         if (userId == null) {
             throw new IllegalStateException("User ID not found in token");
@@ -62,6 +65,9 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setUserId(UUID.fromString(userId));
         notification.setStatus(NotificationStatus.PENDING);
         notification.setNextExecution(nextExecution);
+
+        // será trabalhado melhor em versões futuras.
+        // por enquanto não esta sendo usado.
         notification.setCronExpression(createCronExpression(request));
 
         NotificationEntity scheduled = notificationRepository.save(notification);
@@ -78,6 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
                 scheduled.getUserId()
         );
 
+        // envia para os workers processarem.
         notificationProducer.sendToProcess(cityRequest);
 
         return notificationMapper.toResponse(scheduled);
@@ -101,57 +108,37 @@ public class NotificationServiceImpl implements NotificationService {
         return switch (request.scheduleType()) {
             case ONCE -> request.executeAt();
             case DAILY -> {
-                LocalDateTime now = LocalDateTime.now();
-                ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
-                ZonedDateTime zonedNow = now.atZone(ZoneId.systemDefault()).withZoneSameInstant(zoneId);
-                
-                System.out.println("Hora atual (UTC): " + now);
-                System.out.println("Hora atual (São Paulo): " + zonedNow);
-                
-                LocalDateTime proposedTime = zonedNow.toLocalDateTime()
-                        .withHour(LocalTime.parse(request.time()).getHour())
-                        .withMinute(LocalTime.parse(request.time()).getMinute())
-                        .withSecond(0)
-                        .withNano(0);
-                
-                System.out.println("Hora proposta: " + proposedTime);
-                System.out.println("É antes? " + proposedTime.isBefore(zonedNow.toLocalDateTime()));
+                TimeAdjusted timeAdjusted = TimeUtils.adjustTime(request);
+                LocalDateTime baseTime = timeAdjusted.getBaseTime();
                 
                 // Se o horário já passou hoje, agenda para amanhã
-                if (proposedTime.isBefore(zonedNow.toLocalDateTime())) {
-                    proposedTime = proposedTime.plusDays(1);
-                    System.out.println("Ajustado para amanhã: " + proposedTime);
+                if (baseTime.isBefore(timeAdjusted.getZonedNow().toLocalDateTime())) {
+                    baseTime = baseTime.plusDays(1);
+                    System.out.println("Ajustado para amanhã: " + baseTime);
                 }
                 
                 // Converte de volta para UTC
-                ZonedDateTime zonedProposed = proposedTime.atZone(zoneId);
+                ZonedDateTime zonedProposed = baseTime.atZone(timeAdjusted.getZoneId());
                 ZonedDateTime utcProposed = zonedProposed.withZoneSameInstant(ZoneId.of("UTC"));
                 
                 yield utcProposed.toLocalDateTime();
             }
             case WEEKLY -> {
-                LocalDateTime now = LocalDateTime.now();
-                ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
-                ZonedDateTime zonedNow = now.atZone(ZoneId.systemDefault()).withZoneSameInstant(zoneId);
-                
-                LocalDateTime baseTime = zonedNow.toLocalDateTime()
-                        .withHour(LocalTime.parse(request.time()).getHour())
-                        .withMinute(LocalTime.parse(request.time()).getMinute())
-                        .withSecond(0)
-                        .withNano(0);
-                
+                TimeAdjusted timeAdjusted = TimeUtils.adjustTime(request);
+                LocalDateTime baseTime = timeAdjusted.getBaseTime();
+
                 // Ajusta para o próximo dia da semana desejado
                 while (baseTime.getDayOfWeek().getValue() != request.dayOfWeek()) {
                     baseTime = baseTime.plusDays(1);
                 }
                 
                 // Se mesmo após ajustar o dia da semana, o horário já passou
-                if (baseTime.isBefore(zonedNow.toLocalDateTime())) {
+                if (baseTime.isBefore(timeAdjusted.getZonedNow().toLocalDateTime())) {
                     baseTime = baseTime.plusDays(7);
                 }
                 
                 // Converte de volta para UTC
-                ZonedDateTime zonedBase = baseTime.atZone(zoneId);
+                ZonedDateTime zonedBase = baseTime.atZone(timeAdjusted.getZoneId());
                 ZonedDateTime utcBase = zonedBase.withZoneSameInstant(ZoneId.of("UTC"));
                 
                 yield utcBase.toLocalDateTime();
