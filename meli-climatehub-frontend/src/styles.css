@@ -1,0 +1,87 @@
+/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+@import "primeflex/primeflex.css";
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Definição de variáveis globais */
+:root {
+    --primary-color: #FFE600; /* Amarelo Mercado Livre */
+    --primary-hover: #FFD200; /* Tom levemente mais escuro */
+    --primary-active: #FFBF00; /* Tom mais intenso ao clicar */
+    --primary-focus-shadow: #FFE600; /* Sombra ao focar */
+    --primary-disabled: #F0C000; /* Tom mais apagado */
+    --primary-text: #000; /* Cor do texto */
+    --disabled-text: #777; /* Cor do texto desabilitado */
+
+
+    --ml-blue: #3483FA; /* Azul padrão Mercado Livre */
+    --ml-blue-hover: #1d6fe4;
+    --ml-blue-active: #0b5ed7;
+    --ml-blue-focus-shadow: rgba(52, 131, 250, 0.5);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+a {
+  text-decoration: underline;
+  color: var(--ml-blue) !important;
+}
+
+
+/* Aplicando ao botão */
+.p-button {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Hover */
+.p-button:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+/* Active (Click) */
+.p-button:active {
+    background-color: var(--primary-active) !important;
+    border-color: var(--primary-active) !important;
+}
+
+/* Focus */
+.p-button:focus {
+    box-shadow: 0 0 5px var(--primary-focus-shadow) !important;
+}
+
+/* Disabled */
+.p-button:disabled {
+    background-color: var(--primary-disabled) !important;
+    border-color: var(--primary-disabled) !important;
+    color: var(--disabled-text) !important;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.p-inputtext {
+    border: 2px solid var(--ml-blue) !important;
+    color: var(--primary-text);
+}
+
+.p-inputtext:hover {
+    border-color: var(--ml-blue-hover) !important;
+}
+
+.p-inputtext:focus {
+    border-color: var(--ml-blue-active) !important;
+    box-shadow: 0 0 5px var(--ml-blue-focus-shadow) !important;
+}
