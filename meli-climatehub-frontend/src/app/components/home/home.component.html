@@ -1,0 +1,375 @@
+<div class="flex flex-column md:flex-row w-full h-full">
+    <!-- Overlay para dispositivos móveis -->
+    <div class="sidebar-overlay" [class.visible]="sidebarVisible" (click)="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <aside class="md:w-[240px] bg-white shadow-lg h-full overflow-y-auto" [class.visible]="sidebarVisible">
+        <div class="p-3 border-b border-gray-200">
+            <img 
+                [style]="{ width: '85px' }" 
+                src="https://upload.wikimedia.org/wikipedia/pt/0/04/Logotipo_MercadoLivre.png" 
+                alt="Logo Mercado Livre">
+        </div>
+        <nav class="p-3">
+            <ul class="list-none p-0 m-0">
+                <li class="mb-2">
+                    <a pRipple class="flex align-items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900 no-underline">
+                        <i class="pi pi-home mr-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <!-- <li class="mb-2">
+                    <a pRipple class="flex align-items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900 no-underline">
+                        <i class="pi pi-chart-line mr-2"></i>
+                        <span>History</span>
+                    </a>
+                </li> -->
+                <li class="mb-2">
+                    <a pRipple routerLink="/settings" class="flex align-items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900 no-underline">
+                        <i class="pi pi-cog mr-2"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a pRipple class="flex align-items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900 no-underline">
+                        <i class="pi pi-question-circle mr-2"></i>
+                        <span>Help</span>
+                    </a>
+                </li>
+                <li class="mt-auto">
+                    <a pRipple (click)="confirmLogout()" class="flex align-items-center cursor-pointer p-2 rounded-lg hover:bg-red-100 transition-colors duration-200 text-red-600 hover:text-red-700 no-underline">
+                        <i class="pi pi-sign-out mr-2"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content Container -->
+    <div class="flex-1 flex flex-column h-full overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="flex justify-content-between align-items-center px-4 py-3">
+                <div class="flex align-items-center">
+                    <button pButton icon="pi pi-bars" class="p-button-text md:hidden mr-3" (click)="toggleSidebar()"></button>
+                    <h1 class="text-xl font-semibold text-gray-800 m-0">ClimateHub</h1>
+                </div>
+                <div class="flex align-items-center gap-3">
+                    <a href="https://github.com/mistervb/meli-climate-notifications/tree/main" target="_blank">
+                        <p-button icon="pi pi-github" styleClass="p-button-text" pTooltip="GitHub"></p-button>
+                    </a>
+                    <a href="https://www.linkedin.com/in/victor-barberino-373797231/" target="_blank">
+                        <p-button icon="pi pi-linkedin" styleClass="p-button-text" pTooltip="LinkedIn"></p-button>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 bg-gray-50 overflow-y-auto">
+            <p-toast></p-toast>
+            
+            <div class="grid">
+                <!-- Welcome Card -->
+                <div class="col-12">
+                    <p-card styleClass="mb-4">
+                        <div class="flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold m-0 mb-2">Welcome to ClimateHub</h2>
+                                <p class="text-gray-600 m-0">Schedule your weather notifications and stay informed about the weather.</p>
+                            </div>
+                            <p-button 
+                                label="New Notification" 
+                                icon="pi pi-plus" 
+                                (onClick)="openNewNotificationDialog()"
+                                styleClass="p-button-primary">
+                            </p-button>
+                        </div>
+                    </p-card>
+                </div>
+
+                <!-- Notifications Table -->
+                <div class="col-12">
+                    <p-card header="My Notifications">
+                        <p-table [value]="notifications" [tableStyle]="{ 'min-width': '50rem' }">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>City</th>
+                                    <th>State</th>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Next Execution</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-notification>
+                                <tr>
+                                    <td>{{notification.cityName}}</td>
+                                    <td>{{notification.uf}}</td>
+                                    <td>{{notification.time}}</td>
+                                    <td>
+                                        <span [ngSwitch]="notification.scheduleType">
+                                            <span *ngSwitchCase="'ONCE'">Once</span>
+                                            <span *ngSwitchCase="'DAILY'">Daily</span>
+                                            <span *ngSwitchCase="'WEEKLY'">Weekly</span>
+                                        </span>
+                                    </td>
+                                    <td>{{notification.nextExecution | localDate:'dd/MM/yyyy HH:mm'}}</td>
+                                    <td>
+                                        <span [class]="notification.status === 'ACTIVE' ? 'text-green-500' : 'text-gray-500'">
+                                            {{notification.status === 'ACTIVE' ? 'Active' : 'Paused'}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="flex gap-2">
+                                            <button 
+                                                pButton 
+                                                [icon]="notification.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play'"
+                                                [class]="notification.status === 'ACTIVE' ? 'p-button-warning' : 'p-button-success'"
+                                                class="p-button-sm"
+                                                (click)="toggleNotificationStatus(notification)">
+                                            </button>
+                                            <button 
+                                                pButton 
+                                                icon="pi pi-trash" 
+                                                class="p-button-danger p-button-sm"
+                                                (click)="deleteNotification(notification)">
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td colspan="6" class="text-center p-4">
+                                        <div class="flex flex-column align-items-center">
+                                            <i class="pi pi-bell-slash text-gray-400 text-4xl mb-2"></i>
+                                            <span class="text-gray-400">No scheduled notifications</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </p-card>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white shadow-sm p-3 text-center">
+            <p class="text-gray-600 text-sm m-0">© 2024 ClimateHub - Mercado Livre. All rights reserved.</p>
+        </footer>
+    </div>
+</div>
+
+<!-- Logout confirmation dialog -->
+<p-dialog 
+    [(visible)]="showLogoutDialog" 
+    [modal]="true" 
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{width: '400px'}"
+    header="Confirm Logout">
+    <div class="flex flex-column gap-3">
+        <p class="m-0">Are you sure you want to log out of your account?</p>
+    </div>
+    <ng-template pTemplate="footer">
+        <div class="flex gap-2 justify-content-end">
+            <p-button 
+                (click)="hideLogoutDialog()" 
+                label="Cancel" 
+                styleClass="p-button-text">
+            </p-button>
+            <p-button 
+                (click)="logout()" 
+                label="Logout" 
+                severity="danger">
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- New Notification Dialog -->
+<p-dialog 
+    [(visible)]="showNewNotificationDialog" 
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{width: '500px'}"
+    header="New Weather Notification">
+    <form [formGroup]="notificationForm" class="flex flex-column gap-3">
+        <div class="field">
+            <label for="cityName">City</label>
+            <input 
+                id="cityName"
+                type="text" 
+                pInputText 
+                formControlName="cityName" 
+                class="w-full"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('cityName')?.invalid && notificationForm.get('cityName')?.touched}"
+                placeholder="Enter city name">
+            <small class="p-error block" *ngIf="notificationForm.get('cityName')?.invalid && notificationForm.get('cityName')?.touched">
+                {{ getErrorMessage('cityName') }}
+            </small>
+        </div>
+
+        <div class="field">
+            <label for="uf">State (UF)</label>
+            <input 
+                id="uf"
+                type="text" 
+                pInputText 
+                formControlName="uf" 
+                class="w-full"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('uf')?.invalid && notificationForm.get('uf')?.touched}"
+                placeholder="Enter UF (e.g., SP)"
+                maxlength="2"
+                style="text-transform: uppercase;">
+            <small class="p-error block" *ngIf="notificationForm.get('uf')?.invalid && notificationForm.get('uf')?.touched">
+                {{ getErrorMessage('uf') }}
+            </small>
+        </div>
+
+        <div class="field">
+            <label for="scheduleType">Schedule Type</label>
+            <p-dropdown
+                id="scheduleType"
+                [options]="scheduleTypes"
+                formControlName="scheduleType"
+                placeholder="Select type"
+                [style]="{'width':'100%'}"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('scheduleType')?.invalid && notificationForm.get('scheduleType')?.touched}"
+                optionLabel="label"
+                optionValue="value">
+            </p-dropdown>
+            <small class="p-error block" *ngIf="notificationForm.get('scheduleType')?.invalid && notificationForm.get('scheduleType')?.touched">
+                {{ getErrorMessage('scheduleType') }}
+            </small>
+        </div>
+
+        <div class="field">
+            <label for="time">Notification Time</label>
+            <p-calendar
+                id="time"
+                formControlName="time"
+                [timeOnly]="true"
+                [showTime]="true"
+                [showSeconds]="false"
+                inputId="timeonly"
+                [style]="{'width':'100%'}"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('time')?.invalid && notificationForm.get('time')?.touched}"
+                placeholder="Select time">
+            </p-calendar>
+            <small class="p-error block" *ngIf="notificationForm.get('time')?.invalid && notificationForm.get('time')?.touched">
+                {{ getErrorMessage('time') }}
+            </small>
+        </div>
+
+        <div class="field" *ngIf="notificationForm.get('scheduleType')?.value === 'WEEKLY'">
+            <label for="dayOfWeek">Day of Week</label>
+            <p-dropdown
+                id="dayOfWeek"
+                [options]="daysOfWeek"
+                formControlName="dayOfWeek"
+                placeholder="Select day"
+                [style]="{'width':'100%'}"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('dayOfWeek')?.invalid && notificationForm.get('dayOfWeek')?.touched}"
+                optionLabel="label"
+                optionValue="value">
+            </p-dropdown>
+            <small class="p-error block" *ngIf="notificationForm.get('dayOfWeek')?.invalid && notificationForm.get('dayOfWeek')?.touched">
+                {{ getErrorMessage('dayOfWeek') }}
+            </small>
+        </div>
+
+        <div class="field" *ngIf="notificationForm.get('scheduleType')?.value === 'ONCE'">
+            <label for="executeAt">Execution Date</label>
+            <p-calendar
+                id="executeAt"
+                formControlName="executeAt"
+                [showTime]="true"
+                [showSeconds]="false"
+                [style]="{'width':'100%'}"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('executeAt')?.invalid && notificationForm.get('executeAt')?.touched}"
+                placeholder="Select date and time"
+                [minDate]="minDate">
+            </p-calendar>
+            <small class="p-error block" *ngIf="notificationForm.get('executeAt')?.invalid && notificationForm.get('executeAt')?.touched">
+                {{ getErrorMessage('executeAt') }}
+            </small>
+        </div>
+
+        <div class="field">
+            <label for="endDate">End Date (Optional)</label>
+            <p-calendar
+                id="endDate"
+                formControlName="endDate"
+                [showTime]="true"
+                [showSeconds]="false"
+                [style]="{'width':'100%'}"
+                [ngClass]="{'ng-invalid ng-dirty': notificationForm.get('endDate')?.invalid && notificationForm.get('endDate')?.touched}"
+                placeholder="Select end date"
+                [minDate]="minDate">
+            </p-calendar>
+            <small class="p-error block" *ngIf="notificationForm.get('endDate')?.invalid && notificationForm.get('endDate')?.touched">
+                {{ getErrorMessage('endDate') }}
+            </small>
+        </div>
+
+        <div class="field" *ngIf="notificationForm.errors?.['overlappingSchedule']">
+            <small class="p-error block">There is already a schedule for this city at the same time</small>
+        </div>
+
+        <div class="field" *ngIf="hasReachedMaxActiveSchedules">
+            <small class="p-error block">You have reached the limit of {{ maxActiveSchedules }} active schedules</small>
+        </div>
+    </form>
+    <ng-template pTemplate="footer">
+        <div class="flex gap-2 justify-content-end">
+            <p-button 
+                (click)="showNewNotificationDialog = false" 
+                label="Cancel" 
+                styleClass="p-button-text"
+                [disabled]="isLoading">
+            </p-button>
+            <p-button 
+                (click)="saveNotification()" 
+                label="Save"
+                [loading]="isLoading"
+                [disabled]="notificationForm.invalid || hasReachedMaxActiveSchedules || isLoading">
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Notification History" [(visible)]="showHistoryDialog" [style]="{ width: '90%', maxWidth: '800px' }">
+  <div class="notification-history">
+    <div *ngIf="notificationHistory.length === 0" class="text-center p-4">
+      <p>No notifications received yet.</p>
+    </div>
+    <div *ngFor="let notification of notificationHistory" class="notification-item p-3 mb-2">
+      <div class="flex justify-content-between align-items-center">
+        <h3 class="m-0">{{notification.cityName}}/{{notification.uf}}</h3>
+      </div>
+      <div class="mt-2">
+        <p class="m-0">{{notification.temperature}}</p>
+        <p class="m-0 mt-1">{{notification.description}}</p>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Clear History" class="p-button-danger" (click)="clearHistory()"></button>
+    <button pButton label="Close" class="p-button-secondary" (click)="showHistoryDialog = false"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- History button -->
+<button 
+    pButton 
+    icon="pi pi-history" 
+    label="History"
+    class="p-button-secondary"
+    (click)="showHistoryDialog = true">
+</button>

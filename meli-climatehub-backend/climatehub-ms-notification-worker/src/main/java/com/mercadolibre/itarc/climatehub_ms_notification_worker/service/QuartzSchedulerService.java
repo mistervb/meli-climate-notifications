@@ -25,11 +25,11 @@ public class QuartzSchedulerService {
                     .storeDurably()
                     .build();
 
-            // Cria o trigger para executar a cada minuto
+            // Cria o trigger para executar a cada 5 segundos
             Trigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("notificationTrigger", "notification")
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInMinutes(1)
+                            .withIntervalInSeconds(5)
                             .repeatForever())
                     .build();
 

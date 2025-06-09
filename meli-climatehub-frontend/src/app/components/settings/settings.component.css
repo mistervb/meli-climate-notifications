@@ -1,0 +1,43 @@
+:host ::ng-deep .p-inputswitch {
+    .p-inputswitch-slider {
+        background: #e9ecef;
+    }
+    
+    &.p-inputswitch-checked {
+        .p-inputswitch-slider {
+            background: var(--primary-color);
+        }
+    }
+    
+    &:not(.p-disabled):hover {
+        .p-inputswitch-slider {
+            background: #dee2e6;
+        }
+    }
+}
+
+:host ::ng-deep .p-accordion {
+    .p-accordion-header {
+        .p-accordion-header-link {
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            
+            &:hover {
+                background: #f8f9fa;
+            }
+        }
+    }
+    
+    .p-accordion-content {
+        border: none;
+        background: transparent;
+        padding: 1.25rem 0;
+    }
+}
+
+:host ::ng-deep .p-card {
+    .p-card-content {
+        padding: 1.5rem;
+    }
+} 

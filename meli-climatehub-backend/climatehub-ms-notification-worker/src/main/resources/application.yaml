@@ -104,6 +104,11 @@ resilience4j:
       notification-service:
         timeoutDuration: 2s
 
+# Notification Service
+notification:
+  service:
+    url: ${NOTIFICATION_SERVICE_URL:http://climatehub-ms-notification:8082}
+
 # Eureka Client
 eureka:
   client:

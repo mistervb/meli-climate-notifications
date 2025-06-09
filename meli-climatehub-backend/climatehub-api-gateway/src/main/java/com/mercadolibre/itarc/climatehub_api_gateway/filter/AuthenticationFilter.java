@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.mercadolibre.itarc.climatehub_api_gateway.util.JwtUtil;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+    private static final String TOKEN_QUERY_PARAM = "token";
 
     private final JwtUtil jwtUtil;
 
@@ -40,19 +42,14 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 return chain.filter(exchange);
             }
 
-            // Validação do token para as demais rotas
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                logger.error("Header de autorização ausente para o path: {}", path);
-                return onError(exchange, "Missing Authorization header", HttpStatus.UNAUTHORIZED);
+            // Tenta obter o token do header ou query parameter
+            String token = extractToken(request);
+            
+            if (token == null) {
+                logger.error("Token não encontrado para o path: {}", path);
+                return onError(exchange, "Missing authentication token", HttpStatus.UNAUTHORIZED);
             }
 
-            String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.error("Header de autorização inválido: {}", authHeader);
-                return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
-            }
-
-            String token = authHeader.substring(7);
             logger.debug("Validando token para o path: {}", path);
 
             try {
@@ -75,6 +72,22 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 return onError(exchange, "Error validating token: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         };
+    }
+
+    private String extractToken(ServerHttpRequest request) {
+        // Primeiro tenta obter do header
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // Se não encontrou no header, tenta obter do query parameter
+        String tokenParam = request.getQueryParams().getFirst(TOKEN_QUERY_PARAM);
+        if (StringUtils.hasText(tokenParam)) {
+            return tokenParam;
+        }
+
+        return null;
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {

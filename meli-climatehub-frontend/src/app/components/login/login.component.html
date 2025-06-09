@@ -1,0 +1,45 @@
+<div class="flex flex-column align-items-center justify-content-center min-h-screen">
+    <p-toast></p-toast>
+    <a href="/register" class="mb-2 no-underline text-blue-500 hover:text-blue-700">Don't have an account</a>
+    <p-card header="Login ClimateHub 🌥️" [style]="{ width: '360px' }" class="mb-3">
+        <form [formGroup]="loginForm" class="flex flex-column gap-3 mb-4" (ngSubmit)="login()">
+            <div class="field">
+                <label>Email</label>
+                <input type="text" pInputText formControlName="email" class="w-full" name="email" placeholder="Enter your email">
+                <small
+                  *ngIf="getEmailControl().invalid && (getEmailControl().dirty || getEmailControl().touched)"
+                >
+                  <div *ngIf="getEmailControl().errors?.['required']" class="block text-red-400 mt-2">Email is required</div>
+                  <div *ngIf="getEmailControl().errors?.['email']" class="block text-red-400 mt-2">Email must be valid</div>
+                </small>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" pInputText formControlName="password" class="w-full" name="password" placeholder="Enter your password">
+                 <small
+                  *ngIf="getPasswordControl().invalid && (getPasswordControl().dirty || getPasswordControl().touched)"
+                  class="mb-0"
+                >
+                  <div *ngIf="getPasswordControl().errors?.['required']" class="block text-red-400 mt-2 mb-0">Password is required</div>
+                </small>
+              </div>
+            <p-button
+              type="submit"
+              label="Login"
+              styleClass="w-full"
+              [loading]="isLoading"
+              [disabled]="loginForm.invalid || isLoading"
+            >
+            </p-button>
+        </form>
+        <small class="text-center flex justify-content-center gap-2">
+          <p class="text-gray-600">Powered by</p>
+          <img
+            [style]="{ width: '85px' }"
+            src="https://upload.wikimedia.org/wikipedia/pt/0/04/Logotipo_MercadoLivre.png"
+            alt="mercado-livre.png"/>
+        </small>
+    </p-card>
+
+    <small class="text-muted">Challenge Developer: <a href="https://www.linkedin.com/in/victor-barberino-373797231/" target="_blank">Victor Barberino</a></small>
+</div>

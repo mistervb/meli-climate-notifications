@@ -1,3 +1,7 @@
+networks:
+  climatehub-network:
+    driver: bridge
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -11,7 +15,7 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 30s
 
   redis:
@@ -24,8 +28,8 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 10s
 
   service-discovery:
     build:
@@ -33,17 +37,26 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8761:8761"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      # Configurações de memória JVM
+      - JAVA_OPTS=-Xmx256m -Xms128m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=2 -XX:ConcGCThreads=1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 256M
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/eureka/apps"]
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 3
+      start_period: 40s
     networks:
       - climatehub-network
+    restart: unless-stopped
 
   user-service:
     build:
@@ -96,23 +109,31 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - APP_PORT=8081
+      - JAVA_OPTS=-Xmx1024m -Xms512m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:ParallelGCThreads=4 -XX:ConcGCThreads=2
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1536M
+        reservations:
+          memory: 768M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - climatehub-network
     depends_on:
-      service-discovery:
-        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    networks:
-      - climatehub-network
-      
+      service-discovery:
+        condition: service_healthy
+    restart: unless-stopped
+
   ms-notification-worker:
     build:
       context: ../meli-climatehub-backend/climatehub-ms-notification-worker
@@ -126,6 +147,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      notification-service:
+        condition: service_healthy
     networks:
       - climatehub-network
     environment:
@@ -138,13 +161,24 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - APP_PORT=8083
-    restart: on-failure
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8081
+      # Configurações de memória JVM
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:ParallelGCThreads=4 -XX:ConcGCThreads=2
+      - SPRING_MAIN_WEB-APPLICATION-TYPE=none # Desativa o servidor web para o worker
     healthcheck:
-      test: curl -f http://localhost:8083/actuator/health || exit 1
+      test: ["CMD-SHELL", "pgrep -f 'java.*notification-worker' || exit 1"]
       interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 180s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          memory: 512M
+    restart: unless-stopped
 
   api-gateway:
     build:
@@ -155,6 +189,27 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
       - SPRING_PROFILES_ACTIVE=docker
+      - APP_PORT=8080
+      - SPRING_MAIN_WEB-APPLICATION-TYPE=reactive
+      - SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED=true
+      - SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_LOWER-CASE-SERVICE-ID=true
+      # Configurações de memória JVM
+      - JAVA_OPTS=-Xmx256m -Xms128m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=2 -XX:ConcGCThreads=1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - climatehub-network
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -164,15 +219,4 @@ services:
         condition: service_healthy
       ms-notification-worker:
         condition: service_healthy
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    networks:
-      - climatehub-network
-
-networks:
-  climatehub-network:
+    restart: unless-stopped

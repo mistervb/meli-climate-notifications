@@ -1,0 +1,72 @@
+<div class="flex flex-column align-items-center justify-content-center min-h-screen">
+    <p-toast></p-toast>
+    <a href="/login" class="mb-2">I already have an account.</a>
+    <p-card header="Register on Climatehub 🌥️" [style]="{ width: '360px' }" class="mb-3">
+        <form [formGroup]="registerForm" class="flex flex-column gap-3 mb-4">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" pInputText formControlName="username" class="w-full" name="username" placeholder="Type your username   ">
+                <small
+                  *ngIf="getUsernameControl().invalid && (getUsernameControl().dirty || getUsernameControl().touched)"
+                  class="block"
+                >
+                  <div *ngIf="getUsernameControl().errors?.['required']" class="text-red-400 mt-2">Username is required.</div>
+                </small>
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="text" pInputText formControlName="email" class="w-full" name="email" placeholder="Type your email">
+                <small
+                  *ngIf="getEmailControl().invalid && (getEmailControl().dirty || getEmailControl().touched)"
+                  class="block"
+                >
+                  <div *ngIf="getEmailControl().errors?.['required']" class="text-red-400 mt-2">Email is required.</div>
+                  <div *ngIf="getEmailControl().errors?.['email']" class="text-red-400 mt-2">Email should be valid.</div>
+                </small>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" pInputText formControlName="password" class="w-full" name="password" placeholder="Type your password">
+                <small
+                  *ngIf="getPasswordControl().invalid && (getPasswordControl().dirty || getPasswordControl().touched)"
+                  class="block"
+                >
+                  <div *ngIf="getPasswordControl().errors?.['required']" class="text-red-400 mt-2">Password is required.</div>
+                </small>
+              </div>
+              <div class="field">
+                <label>Confirm Password</label>
+                <input type="password" pInputText formControlName="confirmPassword" class="w-full" name="confirmPassword" placeholder="Confirm your password">
+                <small
+                  *ngIf="getConfirmPasswordControl().invalid && (getConfirmPasswordControl().dirty || getConfirmPasswordControl().touched)"
+                  class="block"
+                >
+                  <div *ngIf="getConfirmPasswordControl().errors?.['required']" class="text-red-400 mt-2">You need to confirm your password.</div>
+                </small>
+                <small
+                  *ngIf="registerForm.errors?.['passwordMismatch'] && getConfirmPasswordControl().valid && getPasswordControl().valid"
+                  class="block"
+                >
+                <div  class="block text-red-400 mt-2">Password should match.</div>
+              </small>
+              </div>
+            <p-button
+              label="Register"
+              styleClass="w-full"
+              [loading]="isLoading"
+              [disabled]="registerForm.invalid || isLoading"
+              (onClick)="registerUser()"
+              loadingIcon="pi pi-spin pi-spinner"
+            ></p-button>
+        </form>
+        <small class="text-center flex justify-content-center gap-2">
+          <p class="text-muted">Powered by</p>
+          <img
+            [style]="{ width: '85px' }"
+            src="https://upload.wikimedia.org/wikipedia/pt/0/04/Logotipo_MercadoLivre.png"
+            alt="mercado-livre.png"/>
+        </small>
+    </p-card>
+
+    <small class="text-muted">Challenge Developer: <a href="https://www.linkedin.com/in/victor-barberino-373797231/" target="_blank">Victor Barberino</a></small>
+</div>

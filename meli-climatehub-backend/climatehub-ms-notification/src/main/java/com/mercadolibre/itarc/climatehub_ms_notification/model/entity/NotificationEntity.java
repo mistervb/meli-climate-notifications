@@ -28,6 +28,9 @@ public class NotificationEntity {
     @Enumerated(EnumType.STRING)
     private ScheduleType type; // ONCE, DAILY, WEEKLY, CUSTOM
 
+    private String cityName;
+    private String uf;
+
     @Enumerated(EnumType.STRING)
     private NotificationStatus status; // PENDING, SENT, FAILED
     private Integer dayOfWeek;

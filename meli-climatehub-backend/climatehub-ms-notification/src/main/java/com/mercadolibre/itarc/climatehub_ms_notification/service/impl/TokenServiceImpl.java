@@ -18,4 +18,8 @@ public class TokenServiceImpl implements TokenService {
         String token = RequestInterceptor.getCurrentToken();
         return jwtUtil.extractUserId(token);
     }
+
+    public String getUserIdFromToken(String token) {
+        return jwtUtil.extractUserId(token);
+    }
 }

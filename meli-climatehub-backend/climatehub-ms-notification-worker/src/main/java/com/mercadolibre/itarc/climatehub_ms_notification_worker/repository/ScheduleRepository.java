@@ -12,9 +12,9 @@ import java.util.UUID;
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, UUID> {
     @Query(
         " SELECT s FROM ScheduleEntity s WHERE s.status = 'ACTIVE' " +
-        "   AND (s.nextExecution BETWEEN :startTime AND :endTime   " +
-        "    OR s.nextExecution <= :now)                           " +
-        "   AND (s.endDate IS NULL OR s.endDate > :now)            " 
+        "   AND (s.nextExecution BETWEEN :startTime AND :endTime) " +
+        "   AND (s.endDate IS NULL OR s.endDate > :now)           " +
+        " ORDER BY s.nextExecution ASC "
     )
     List<ScheduleEntity> findPendingNotificationsWithTolerance(
             @Param("startTime") LocalDateTime startTime,

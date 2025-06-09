@@ -8,6 +8,7 @@ import com.mercadolibre.itarc.climatehub_ms_user.model.mapper.UserMapper;
 import com.mercadolibre.itarc.climatehub_ms_user.repository.UserRepository;
 import com.mercadolibre.itarc.climatehub_ms_user.service.RedisOptOutService;
 import com.mercadolibre.itarc.climatehub_ms_user.service.user.UserService;
+import com.mercadolibre.itarc.climatehub_ms_user.util.JwtUtil;
 import com.mercadolibre.itarc.climatehub_ms_user.validator.UserValidator;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,17 +25,20 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RedisOptOutService redisOptOutService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public UserServiceImpl(
         UserRepository userRepository, 
         UserMapper userMapper, 
         RedisOptOutService redisOptOutService,
-        PasswordEncoder passwordEncoder
+        PasswordEncoder passwordEncoder,
+        JwtUtil jwtUtil
     ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.redisOptOutService = redisOptOutService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -54,7 +58,8 @@ public class UserServiceImpl implements UserService {
         // Inicializa o opt-out no Redis com o valor padrão (false)
         redisOptOutService.setOptOut(savedUser.getUserId(), false);
         
-        return userMapper.toCreateData(savedUser);
+        String token = jwtUtil.generateToken(savedUser.getEmail(), String.valueOf(this.getUserIdByEmail(savedUser.getEmail())));
+        return new UserCreatedDTO(savedUser.getUserId(), savedUser.getUsername(), token, savedUser.getCreatedAt(), savedUser.getUpdatedAt());
     }
 
     public void setNotificationOptOut(UUID userId, boolean optOut) {

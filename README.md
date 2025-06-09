@@ -17,6 +17,7 @@
     <img src="https://img.shields.io/badge/Redis-Latest-red?style=flat-square&logo=redis" alt="Redis"/>
     <img src="https://img.shields.io/badge/H2-Database-darkblue?style=flat-square&logo=h2" alt="H2"/>
     <img src="https://img.shields.io/badge/Maven-3.9.6-red?style=flat-square&logo=apache-maven" alt="Maven"/>
+    <img src="https://img.shields.io/badge/Angular-17-red?style=flat-square&logo=angular" alt="Angular"/>
   </p>
 </div>
 
@@ -74,6 +75,7 @@ graph TB
 
 | Componente | Tecnologia | Responsabilidade |
 |------------|------------|------------------|
+| Frontend | Angular 19 | Interface do Usuário, Gestão de Estado |
 | API Gateway | Spring Cloud Gateway | Roteamento, Load Balancing, Autenticação JWT |
 | User Service | Spring Boot | Autenticação, Gestão de Usuários, JWT |
 | Notification Service | Spring Boot | Agendamentos, Eventos, Persistência |
@@ -112,6 +114,7 @@ graph TB
 - Docker v2+ e Docker Compose
 - Java 21
 - Maven
+- Node.js 20+ (apenas para desenvolvimento)
 
 ### Inicialização
 
@@ -123,11 +126,33 @@ docker compose -f ./docker/docker-compose.yaml up --build
 docker-compose -f ./docker/docker-compose.yaml up --build
 ```
 
+### Frontend
+
+```bash
+# Build e execução do frontend
+# Precisa estar dentro da pasta meli-climatehub-frontend
+cd meli-climatehub-frontend
+ng serve
+```
+
 ### 🌐 Endpoints Principais
 
+- Frontend (Interface Web): http://localhost:4200
 - Eureka Dashboard: http://localhost:8761
 - API Gateway: http://localhost:8080
 - SSE Notifications: http://localhost:8080/notification/stream
+
+### 🖥️ Acessando a Aplicação
+
+Após iniciar todos os serviços com Docker Compose:
+
+1. Abra seu navegador e acesse: http://localhost:4200
+2. Na primeira vez, você precisará criar uma conta usando a opção "Register"
+3. Faça login com suas credenciais
+4. Você será redirecionado para o dashboard onde poderá:
+   - Criar novas notificações climáticas
+   - Gerenciar notificações existentes
+   - Receber atualizações em tempo real
 
 ---
 <div align="center">

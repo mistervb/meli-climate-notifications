@@ -30,8 +30,8 @@ public class CptecServiceImpl implements CptecService {
 
     public CptecServiceImpl(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofSeconds(10))
-                .setReadTimeout(Duration.ofSeconds(10))
+                .setConnectTimeout(Duration.ofSeconds(60))
+                .setReadTimeout(Duration.ofSeconds(60))
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
                 .defaultHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name())
                 .build();
@@ -58,38 +58,6 @@ public class CptecServiceImpl implements CptecService {
         String[] palavras = normalizado.split("\\s+");
 
         return palavras[0];
-    }
-
-    @Override
-    @Cacheable(value = "cityCache", key = "#cityName.toLowerCase() + '-' + #uf.toUpperCase()", unless = "#result == null")
-    public CityCache getCityId(String cityName, String uf) {
-        String normalizedCityName = normalizarNome(cityName);
-
-        String xml = restTemplate.getForObject(
-                BASE_URL + "/listaCidades?city={cityName}",
-                String.class,
-                normalizedCityName
-        );
-
-        try {
-            JAXBContext context = JAXBContext.newInstance(CidadesXmlResponse.class);
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-            StringReader reader = new StringReader(xml);
-            CidadesXmlResponse response = (CidadesXmlResponse) unmarshaller.unmarshal(reader);
-
-            return response.getCidades().stream()
-                    .filter(c -> {
-                        String normalizedNome = normalizarNome(c.getNome());
-                        return normalizedNome.equalsIgnoreCase(normalizedCityName) &&
-                                c.getUf().equalsIgnoreCase(uf);
-                    })
-                    .findFirst()
-                    .map(c -> new CityCache(c.getId(), c.getUf()))
-                    .orElse(null);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao parsear resposta do CPTEC/INPE", e);
-        }
     }
 
     @Override
@@ -200,4 +168,6 @@ public class CptecServiceImpl implements CptecService {
             throw new RuntimeException("Erro ao parsear resposta de ondas do CPTEC/INPE", e);
         }
     }
+
+
 }

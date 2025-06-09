@@ -5,8 +5,6 @@ import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.redis.Onda
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.redis.PrevisaoCache;
 
 public interface CptecService {
-    CityCache getCityId(String cityName, String uf);
-
     /**
      * Busca a previsão do tempo para uma cidade específica
      * @param cityId ID da cidade no CPTEC

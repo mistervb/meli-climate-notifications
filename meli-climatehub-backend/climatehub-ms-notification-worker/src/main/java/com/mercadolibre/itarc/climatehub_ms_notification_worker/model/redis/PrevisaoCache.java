@@ -1,6 +1,7 @@
 package com.mercadolibre.itarc.climatehub_ms_notification_worker.model.redis;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class PrevisaoCache implements Serializable {
@@ -19,6 +21,7 @@ public class PrevisaoCache implements Serializable {
     private List<PrevisaoDia> previsoes;
 
     @Data
+    @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class PrevisaoDia implements Serializable {

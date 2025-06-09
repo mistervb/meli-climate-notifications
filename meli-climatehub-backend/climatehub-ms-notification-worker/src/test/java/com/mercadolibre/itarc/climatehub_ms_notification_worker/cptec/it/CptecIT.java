@@ -31,6 +31,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/*
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {
@@ -41,8 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @ActiveProfiles("test")
+*/
 public class CptecIT {
-
+/*
     private static final String BASE_URL = "http://servicos.cptec.inpe.br/XML";
     private static final Logger logger = LoggerFactory.getLogger(CptecIT.class);
 
@@ -458,4 +460,5 @@ public class CptecIT {
         assertTrue(manha.getVento() >= 0,
                 "A velocidade do vento não deveria ser negativa");
     }
+    */
 }

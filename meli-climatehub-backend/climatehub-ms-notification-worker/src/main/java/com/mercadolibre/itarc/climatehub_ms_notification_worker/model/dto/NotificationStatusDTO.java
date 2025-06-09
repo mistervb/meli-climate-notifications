@@ -13,4 +13,4 @@ import lombok.NoArgsConstructor;
 public class NotificationStatusDTO {
     private NotificationStatus status;
     private String message;
-}
+} 

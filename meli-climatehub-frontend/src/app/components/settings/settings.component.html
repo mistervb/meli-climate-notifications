@@ -1,0 +1,53 @@
+<div class="p-4">
+    <p-toast></p-toast>
+
+    <!-- Cabeçalho -->
+    <div class="mb-4">
+        <h1 class="text-2xl font-semibold text-gray-800">Configurações</h1>
+        <p class="text-gray-600">Gerencie suas preferências de notificação e outras configurações</p>
+    </div>
+
+    <!-- Card Principal -->
+    <p-card>
+        <!-- Versão do App -->
+        <div class="mb-4 pb-4 border-bottom-1 border-gray-200">
+            <h2 class="text-xl font-medium mb-2">Informações do Sistema</h2>
+            <div class="flex align-items-center">
+                <i class="pi pi-info-circle text-primary mr-2"></i>
+                <span class="text-gray-700">Versão: {{appVersion}}</span>
+            </div>
+        </div>
+
+        <!-- Configurações de Notificação -->
+        <p-accordion>
+            <p-accordionTab header="Preferências de Notificação">
+                <div class="p-fluid">
+                    <div class="flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium m-0 mb-1">Notificações Climáticas</h3>
+                            <p class="text-gray-600 text-sm m-0">
+                                Receba atualizações sobre as condições climáticas das suas cidades favoritas
+                            </p>
+                        </div>
+                        <p-inputSwitch 
+                            [(ngModel)]="notificationsEnabled"
+                            (onChange)="onNotificationToggleChange()"
+                            [disabled]="isLoading">
+                        </p-inputSwitch>
+                    </div>
+                </div>
+            </p-accordionTab>
+        </p-accordion>
+
+        <!-- Botões de Ação -->
+        <div class="flex justify-content-end mt-4">
+            <p-button 
+                label="Salvar Alterações" 
+                icon="pi pi-check" 
+                (onClick)="saveChanges()"
+                [loading]="isLoading"
+                [disabled]="!hasUnsavedChanges || isLoading">
+            </p-button>
+        </div>
+    </p-card>
+</div> 

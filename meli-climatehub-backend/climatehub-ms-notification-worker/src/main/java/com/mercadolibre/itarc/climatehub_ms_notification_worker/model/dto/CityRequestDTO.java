@@ -1,6 +1,7 @@
 package com.mercadolibre.itarc.climatehub_ms_notification_worker.model.dto;
 
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.constants.ScheduleType;
+import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.redis.CityCache;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,4 +25,5 @@ public class CityRequestDTO {
     private LocalDateTime endDate;
     private UUID notificationId;
     private UUID userId;
+    private CityCache cityInfo;
 }

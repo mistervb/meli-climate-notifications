@@ -6,7 +6,9 @@ import com.mercadolibre.itarc.climatehub_ms_user.model.dto.UserPayload;
 import com.mercadolibre.itarc.climatehub_ms_user.model.entity.UserEntity;
 import com.mercadolibre.itarc.climatehub_ms_user.model.mapper.UserMapper;
 import com.mercadolibre.itarc.climatehub_ms_user.repository.UserRepository;
+import com.mercadolibre.itarc.climatehub_ms_user.service.RedisOptOutService;
 import com.mercadolibre.itarc.climatehub_ms_user.service.user.impl.UserServiceImpl;
+import com.mercadolibre.itarc.climatehub_ms_user.util.JwtUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -31,6 +34,15 @@ public class UserServiceTests {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private RedisOptOutService redisOptOutService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
     private UserPayload userPayload;
     private UUID currentUserId;
     private UserCreatedDTO userCreatedDTOExpected;
@@ -45,6 +57,7 @@ public class UserServiceTests {
         this.userCreatedDTOExpected = new UserCreatedDTO(
                 UUID.randomUUID(),
                 "Yui Takashi",
+                "dummy-token",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
@@ -60,17 +73,13 @@ public class UserServiceTests {
         userEntity.setUpdatedAt(LocalDateTime.now());
 
         Mockito.when(userMapper.toEntity(userPayload)).thenReturn(userEntity);
+        Mockito.when(passwordEncoder.encode(userPayload.passwordHashed())).thenReturn("encoded-password");
 
         userEntity.setUserId(this.currentUserId);
         Mockito.when(userRepository.save(userEntity)).thenReturn(userEntity);
         
-        UserCreatedDTO userCreatedDTO = new UserCreatedDTO(
-            this.currentUserId,
-            userEntity.getUsername(),
-            userEntity.getCreatedAt(),
-            userEntity.getUpdatedAt()
-        );
-        Mockito.when(userMapper.toCreateData(userEntity)).thenReturn(userCreatedDTO);
+        Mockito.when(jwtUtil.generateToken(userEntity.getEmail(), this.currentUserId.toString()))
+            .thenReturn("dummy-token");
 
         Mockito.when(userRepository.existsByEmail(userPayload.email()))
             .thenReturn(false);
@@ -86,6 +95,7 @@ public class UserServiceTests {
         Assertions.assertNotNull(created);
         Assertions.assertEquals(this.currentUserId, created.userId());
         Assertions.assertEquals(this.userPayload.username(), created.username());
+        Assertions.assertEquals("dummy-token", created.token());
     }
 
     @Test
@@ -111,10 +121,9 @@ public class UserServiceTests {
 
         UserPayload payloadEmailVazio = new UserPayload(
                 "Yui Takashi",
-                null,
+                "",
                 "Teste@Senha123"
         );
-
 
         UserPayload payloadEmailInvalido = new UserPayload(
                 "Yui Takashi",
@@ -145,7 +154,6 @@ public class UserServiceTests {
                 "takashi.yui@gmail.com",
                 "123456"
         );
-
 
         Assertions.assertThrows(BusinessException.class,
             () -> userService.registerUser(payloadUsernameNulo));

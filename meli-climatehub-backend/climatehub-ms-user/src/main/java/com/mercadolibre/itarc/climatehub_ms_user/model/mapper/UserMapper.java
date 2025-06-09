@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-import com.mercadolibre.itarc.climatehub_ms_user.model.dto.UserCreatedDTO;
 import com.mercadolibre.itarc.climatehub_ms_user.model.dto.UserDTO;
 import com.mercadolibre.itarc.climatehub_ms_user.model.dto.UserPayload;
 import com.mercadolibre.itarc.climatehub_ms_user.model.entity.UserEntity;
@@ -27,10 +26,4 @@ public interface UserMapper {
     @Mapping(target = "userId", source = "userId")
     @Mapping(target = "username", source = "username")
     UserDTO toData(UserEntity entity);
-
-    @Mapping(target = "userId", source = "userId")
-    @Mapping(target = "username", source = "username")
-    @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "updatedAt", source = "updatedAt")
-    UserCreatedDTO toCreateData(UserEntity entity);
 }

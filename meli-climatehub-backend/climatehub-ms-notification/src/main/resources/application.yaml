@@ -3,17 +3,52 @@ spring:
     name: climatehub-ms-notification
   cache:
     type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      timeout: 10000
+      connect-timeout: 10000
+      client-type: lettuce
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1
   rabbitmq:
     host: ${RABBITMQ_HOST:rabbitmq}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
 server:
   port: ${APP_PORT:8081}
+  tomcat:
+    max-http-form-post-size: 2MB
+    max-swallow-size: 2MB
+    max-threads: 200
+    accept-count: 100
+
 eureka:
   client:
     service-url:

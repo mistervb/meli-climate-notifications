@@ -82,7 +82,7 @@ POST /notification/schedule
 {
   "cityName": "string",
   "uf": "string",
-  "scheduleType": "ONCE | DAILY | WEEKLY ",
+  "scheduleType": "ONCE | DAILY | WEEKLY",
   "time": "HH:mm",
   "dayOfWeek": 1,
   "executeAt": "2024-03-20T10:00:00",
@@ -95,6 +95,42 @@ POST /notification/schedule
 {
   "notificationId": "uuid",
   "nextExecutionTime": "datetime"
+}
+```
+
+### Get All Notifications
+```http
+GET /notification/all
+```
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "notificationId": "uuid",
+    "type": "ONCE | DAILY | WEEKLY",
+    "status": "ACTIVE | PAUSED | CANCELLED",
+    "cityName": "string",
+    "uf": "string",
+    "nextExecution": "datetime"
+  }
+]
+```
+
+### Get Notification by ID
+```http
+GET /notification/{notificationId}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "notificationId": "uuid",
+  "type": "ONCE | DAILY | WEEKLY",
+  "status": "ACTIVE | PAUSED | CANCELLED",
+  "cityName": "string",
+  "uf": "string",
+  "nextExecution": "datetime"
 }
 ```
 
@@ -140,41 +176,42 @@ Server-Sent Events (SSE) endpoint que envia notificações em tempo real.
 1. **ONCE**
    - Execução única em data/hora específica
    - Requer: executeAt
-   - Não requer: endDate, dayOfWeek
+   - Não requer: time, dayOfWeek
+   - Opcional: endDate
 
 2. **DAILY**
    - Executa todos os dias no horário especificado
    - Requer: time
+   - Não requer: executeAt, dayOfWeek
    - Opcional: endDate
-   - Não requer: dayOfWeek, executeAt
 
 3. **WEEKLY**
    - Executa em um dia específico da semana
-   - Requer: time, dayOfWeek (1-7, onde 1 = Segunda/Monday)
-   - Opcional: endDate
+   - Requer: time, dayOfWeek (1-7, onde 1 = Segunda-feira)
    - Não requer: executeAt
+   - Opcional: endDate
 
 ### Validações
 
 1. **Datas e Horários**
-   - time: formato HH:mm (24h)
+   - time: formato HH:mm (24h), entre 06:00 e 22:00
    - executeAt: data/hora futura
-   - endDate: posterior a data atual e executeAt
-   - dayOfWeek: 1-7 (Domingo-Sábado)
+   - endDate: posterior a data atual e executeAt (se presente)
+   - dayOfWeek: 1-7 (Segunda-Domingo)
 
 2. **Localização**
-   - cityName: nome da cidade válido
-   - uf: sigla do estado válida (2 caracteres)
+   - cityName: nome da cidade válido (letras, espaços e hífens)
+   - uf: sigla do estado válida (2 caracteres maiúsculos)
 
 3. **Agendamento**
    - Não permite sobreposição de horários para mesma cidade
-   - Intervalo mínimo de 1 hora entre notificações
    - Máximo de 5 agendamentos ativos por usuário
+   - Status possíveis: ACTIVE, PAUSED, CANCELLED
 
 ### Notificações em Tempo Real (SSE)
 
 1. **Conexão**
-   - Requer autenticação via token JWT
+   - Requer autenticação via token JWT no header Authorization
    - Reconexão automática em caso de queda
    - Timeout de 30 segundos
 
@@ -187,3 +224,26 @@ Server-Sent Events (SSE) endpoint que envia notificações em tempo real.
    - Reconexão exponencial (1s, 2s, 4s, 8s...)
    - Máximo de 3 tentativas por conexão
    - Notificação de falha após tentativas
+
+### Códigos de Erro
+
+1. **400 Bad Request**
+   - Dados inválidos no payload
+   - Validações de negócio não atendidas
+   - Formato de data/hora inválido
+
+2. **401 Unauthorized**
+   - Token ausente ou inválido
+   - Sessão expirada
+
+3. **403 Forbidden**
+   - Tentativa de acesso a recurso de outro usuário
+   - Limite de agendamentos ativos excedido
+
+4. **404 Not Found**
+   - Notificação não encontrada
+   - Cidade não encontrada
+
+5. **409 Conflict**
+   - Sobreposição de horários para mesma cidade
+   - Email já registrado (no cadastro)

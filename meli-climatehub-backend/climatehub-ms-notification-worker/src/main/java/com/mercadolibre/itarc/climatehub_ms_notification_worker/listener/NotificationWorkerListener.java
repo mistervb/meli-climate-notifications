@@ -3,9 +3,7 @@ package com.mercadolibre.itarc.climatehub_ms_notification_worker.listener;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.config.RabbitMQConfig;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.constants.NotificationStatus;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.constants.ScheduleStatus;
-import com.mercadolibre.itarc.climatehub_ms_notification_worker.feign.client.NotificationFeignClient;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.dto.CityRequestDTO;
-import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.dto.NotificationStatusDTO;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.entity.ScheduleEntity;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.model.redis.CityCache;
 import com.mercadolibre.itarc.climatehub_ms_notification_worker.repository.ScheduleRepository;
@@ -27,18 +25,15 @@ public class NotificationWorkerListener {
     
     private final CptecService cptecService;
     private final ScheduleRepository scheduleRepository;
-    private final NotificationFeignClient notificationClient;
     private final TokenEncryptionUtil tokenEncryptionUtil;
 
     public NotificationWorkerListener(
             CptecService cptecService,
             ScheduleRepository scheduleRepository,
-            NotificationFeignClient notificationClient,
             TokenEncryptionUtil tokenEncryptionUtil
     ) {
         this.cptecService = cptecService;
         this.scheduleRepository = scheduleRepository;
-        this.notificationClient = notificationClient;
         this.tokenEncryptionUtil = tokenEncryptionUtil;
     }
 
@@ -49,41 +44,15 @@ public class NotificationWorkerListener {
             String token = extractToken(message);
             log.debug("Recebido pedido de agendamento: {}", request);
 
-            // Busca informações da cidade no CPTEC
-            CityCache cityInfo = cptecService.getCityId(request.getCityName(), request.getUf());
-            if (cityInfo == null) {
-                log.error("Cidade não encontrada: {} - {}", request.getCityName(), request.getUf());
-                notificationClient.updateStatus(request.getNotificationId(), 
-                    NotificationStatusDTO.builder()
-                        .status(NotificationStatus.FAILED)
-                        .message("Cidade não encontrada")
-                        .build());
-                throw new AmqpRejectAndDontRequeueException("Cidade não encontrada");
-            }
-
             // Cria o agendamento com o token criptografado
-            ScheduleEntity schedule = createSchedule(request, cityInfo);
+            ScheduleEntity schedule = createSchedule(request, request.getCityInfo());
             if (token != null) {
                 String encryptedToken = tokenEncryptionUtil.encrypt(token);
                 schedule.setAuthToken(encryptedToken);
             }
             scheduleRepository.save(schedule);
-
-            // Atualiza o status da notificação
-            NotificationStatusDTO statusDTO = NotificationStatusDTO.builder()
-                    .status(NotificationStatus.EXECUTED)
-                    .message("Agendamento criado com sucesso")
-                    .build();
-
-            notificationClient.updateStatus(request.getNotificationId(), statusDTO);
-
         } catch (Exception e) {
             log.error("Erro ao processar mensagem: {}", e.getMessage(), e);
-            notificationClient.updateStatus(request.getNotificationId(), 
-                NotificationStatusDTO.builder()
-                    .status(NotificationStatus.FAILED)
-                    .message(e.getMessage())
-                    .build());
             throw new AmqpRejectAndDontRequeueException("Erro ao processar mensagem", e);
         }
     }

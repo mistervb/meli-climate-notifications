@@ -1,0 +1,137 @@
+:host {
+    display: block;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+:host > div {
+    height: 100%;
+}
+
+/* Estilos para o sidebar em dispositivos móveis */
+@media (max-width: 768px) {
+    aside {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        width: 240px;
+        transform: translateX(-100%);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-font-smoothing: subpixel-antialiased;
+    }
+
+    aside.visible {
+        transform: translateX(0);
+    }
+
+    /* Overlay escuro quando o sidebar está aberto */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: opacity;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.visible {
+        display: block;
+        opacity: 1;
+    }
+}
+
+/* Customização dos links do sidebar */
+nav a {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+nav a:hover {
+    background-color: var(--primary-color);
+    color: var(--primary-text) !important;
+}
+
+/* Ajustes para o card de boas-vindas */
+:host ::ng-deep .p-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 100%;
+}
+
+:host ::ng-deep .p-card .p-card-body {
+    padding: 1.5rem;
+}
+
+/* Customização dos botões do header */
+:host ::ng-deep .p-button.p-button-text {
+    color: var(--ml-blue);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host ::ng-deep .p-button.p-button-text:hover {
+    background: rgba(52, 131, 250, 0.1);
+}
+
+/* Ajustes para o conteúdo principal */
+main {
+    overflow-y: auto;
+    height: calc(100vh - 64px - 56px); /* Subtrai a altura do header e footer */
+}
+
+.notification-history {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.notification-item h3 {
+  color: #1e88e5;
+  font-size: 1.1rem;
+}
+
+.notification-item p {
+  color: #495057;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+  padding: 1.5rem;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .p-toast .p-toast-message {
+  margin: 0 0 1rem 0;
+}
+
+:host ::ng-deep .p-toast .p-toast-message .p-toast-message-content {
+  padding: 1rem;
+  border-width: 0 0 0 6px;
+}
